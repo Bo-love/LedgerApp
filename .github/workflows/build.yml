@@ -1,0 +1,62 @@
+name: Build Ledger IPA
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Theos
+        run: |
+          brew install make ldid
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+      - name: Patch Makefile
+        run: |
+          sed -i '' 's|export THEOS=.*|export THEOS ?= $(HOME)/theos|' Makefile
+          # 添加 SDK 自动检测
+          echo "" >> Makefile
+          echo "SDKVERSION = $(shell xcrun --sdk iphoneos --show-sdk-version)" >> Makefile
+          echo "TARGET = iphone:clang:$$(SDKVERSION):13.0" >> Makefile
+
+      - name: Compile
+        run: |
+          cd "${{ github.workspace }}"
+          export SDKVERSION=$(xcrun --sdk iphoneos --show-sdk-version)
+          echo "使用 iOS SDK ${SDKVERSION}"
+          make clean 2>/dev/null || true
+          make package 2>&1
+
+      - name: Package IPA
+        run: |
+          cd "${{ github.workspace }}"
+          # Theos rootless 输出在 .theos/obj/ 或 packages/
+          set -e
+          STAGING=$(find .theos -name "${APPLICATION_NAME:-Ledger}.app" -type d 2>/dev/null | head -1)
+          if [ -z "$STAGING" ]; then
+            STAGING=$(find packages -name "*.app" -type d 2>/dev/null | head -1)
+          fi
+          if [ -z "$STAGING" ]; then
+            echo "搜索 .app..."
+            find . -name "*.app" -type d 2>/dev/null
+            exit 1
+          fi
+          echo "找到 APP: $STAGING"
+          mkdir -p Payload
+          cp -r "$STAGING" Payload/
+          zip -qr Ledger.ipa Payload
+          echo "IPA 大小: $(du -sh Ledger.ipa | cut -f1)"
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ledger
+          path: Ledger.ipa
