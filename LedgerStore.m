@@ -29,15 +29,10 @@ static NSString * const kStoreKey = @"LedgerRecords_v1";
     NSData *data = [[NSUserDefaults standardUserDefaults] dataForKey:kStoreKey];
     if (data) {
         NSError *err = nil;
-        NSArray *arr = nil;
-        // iOS 11+ 安全解档
-        if (@available(iOS 11.0, *)) {
-            arr = [NSKeyedUnarchiver unarchivedObjectOfClasses:[NSSet setWithObjects:[NSArray class],[LedgerRecord class],nil]
-                                                     fromData:data
-                                                        error:&err];
-        } else {
-            arr = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-        }
+        NSSet *classes = [NSSet setWithObjects:[NSArray class], [LedgerRecord class], nil];
+        NSArray *arr = [NSKeyedUnarchiver unarchivedObjectOfClasses:classes
+                                                           fromData:data
+                                                              error:&err];
         _records = arr ? [arr mutableCopy] : [NSMutableArray array];
     } else {
         _records = [NSMutableArray array];
@@ -47,14 +42,9 @@ static NSString * const kStoreKey = @"LedgerRecords_v1";
 
 - (void)saveToDisk {
     NSError *err = nil;
-    NSData *data = nil;
-    if (@available(iOS 11.0, *)) {
-        data = [NSKeyedArchiver archivedDataWithRootObject:_records
-                                    requiringSecureCoding:NO
-                                                    error:&err];
-    } else {
-        data = [NSKeyedArchiver archivedDataWithRootObject:_records];
-    }
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:_records
+                                        requiringSecureCoding:NO
+                                                        error:&err];
     if (data) {
         [[NSUserDefaults standardUserDefaults] setObject:data forKey:kStoreKey];
         [[NSUserDefaults standardUserDefaults] synchronize];
