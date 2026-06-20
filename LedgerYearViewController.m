@@ -4,6 +4,7 @@
 #import "LedgerYearViewController.h"
 #import "LedgerStore.h"
 #import "LedgerMonthViewController.h"
+#import <objc/runtime.h>
 
 #define COLOR_BG         [UIColor colorWithRed:.98 green:.97 blue:.94 alpha:1]
 #define COLOR_CARD       [UIColor whiteColor]
@@ -226,5 +227,4 @@
     tab.selectedIndex=1;
 }
 
-#import <objc/runtime.h>
 @end
