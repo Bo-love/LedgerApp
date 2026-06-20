@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  使用 Theos rootless 方案时的 entitlements
+  如需普通 App Store 分发，去掉 get-task-allow 并改用自己的 Team ID
+-->
+<plist version="1.0">
+<dict>
+    <key>application-identifier</key>
+    <string>com.yourname.ledger</string>
+    <key>get-task-allow</key>
+    <true/>
+    <key>com.apple.private.security.no-sandbox</key>
+    <false/>
+</dict>
+</plist>
